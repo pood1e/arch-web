@@ -106,3 +106,7 @@ npm test           # 单元测试
 npm run test:e2e   # Playwright 冒烟测试，需要本机 Chromium
 npm run build
 ```
+
+## 许可证
+
+[MIT](LICENSE)。`src/assets/brands` 中的上游品牌资源不在此列，许可与商标规则见[来源记录](src/assets/brands/README.md)。
