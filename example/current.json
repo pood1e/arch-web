@@ -1,0 +1,290 @@
+{
+  "title": "现状架构",
+  "baseline": "示例商城 · 单体与集中日志",
+  "repositories": [
+    {
+      "id": "shop-web",
+      "url": "https://gitlab.example.com/shop/web",
+      "branch": "main",
+      "summary": "商城前端"
+    },
+    {
+      "id": "shop-server",
+      "url": "https://gitlab.example.com/shop/server",
+      "branch": "main",
+      "summary": "商城单体后端"
+    },
+    {
+      "id": "shop-deploy",
+      "url": "https://gitlab.example.com/shop/deploy",
+      "branch": "main",
+      "summary": "部署编排与中间件配置"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "customer",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "顾客",
+      "subtitle": "浏览器 · App",
+      "icon": "user",
+      "description": "浏览商品、下单与支付。"
+    },
+    {
+      "id": "operator",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "运营人员",
+      "subtitle": "运营后台 · 看板",
+      "icon": "user",
+      "description": "维护商品、处理订单并查看看板。"
+    },
+    {
+      "id": "cluster",
+      "kind": "NODE_KIND_CLUSTER",
+      "title": "K3s 集群",
+      "subtitle": "三节点",
+      "icon": "k3s",
+      "description": "承载商城全部服务与中间件。",
+      "tier": 1
+    },
+    {
+      "id": "ns-shop",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "shop",
+      "icon": "namespace",
+      "description": "商城应用。"
+    },
+    {
+      "id": "nginx",
+      "parent": "ns-shop",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Nginx",
+      "subtitle": "入口 · TLS",
+      "icon": "nginx",
+      "repository": "shop-deploy",
+      "source": "nginx",
+      "description": "终止 TLS，按路径转发前端与 API，证书手工续期。"
+    },
+    {
+      "id": "web",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "商城前端",
+      "subtitle": "Vue · 单页应用",
+      "icon": "vue",
+      "repository": "shop-web",
+      "source": "src",
+      "description": "顾客端与运营后台共用的单页应用。",
+      "parent": "ns-shop"
+    },
+    {
+      "id": "monolith",
+      "parent": "ns-shop",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "商城单体",
+      "subtitle": "Spring Boot · 商品 / 订单 / 通知",
+      "icon": "springboot",
+      "repository": "shop-server",
+      "source": "server",
+      "description": "商品、订单、支付与短信通知在同一进程中，任何改动都要整体发布。"
+    },
+    {
+      "id": "shop-config",
+      "parent": "ns-shop",
+      "kind": "NODE_KIND_ARTIFACT",
+      "title": "应用配置",
+      "subtitle": "application.yaml",
+      "icon": "config",
+      "repository": "shop-server",
+      "source": "server/src/main/resources",
+      "description": "数据库、缓存与第三方接口的连接配置，随单体镜像发布。"
+    },
+    {
+      "id": "ns-data",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "data",
+      "icon": "namespace",
+      "description": "有状态中间件。"
+    },
+    {
+      "id": "postgres",
+      "parent": "ns-data",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "PostgreSQL",
+      "subtitle": "单库 shop",
+      "icon": "postgresql",
+      "repository": "shop-deploy",
+      "source": "postgres",
+      "description": "商品与订单共用一个数据库与账号。"
+    },
+    {
+      "id": "redis",
+      "parent": "ns-data",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Redis",
+      "subtitle": "会话 · 缓存",
+      "icon": "redis",
+      "repository": "shop-deploy",
+      "source": "redis",
+      "description": "保存登录会话与商品缓存。"
+    },
+    {
+      "id": "ns-logging",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "logging",
+      "icon": "namespace",
+      "description": "日志采集与检索。"
+    },
+    {
+      "id": "fluent-bit",
+      "parent": "ns-logging",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Fluent Bit",
+      "subtitle": "DaemonSet",
+      "icon": "fluentbit",
+      "repository": "shop-deploy",
+      "source": "logging",
+      "description": "采集各节点的容器日志。"
+    },
+    {
+      "id": "loki",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Loki",
+      "subtitle": "日志存储",
+      "icon": "loki",
+      "repository": "shop-deploy",
+      "source": "observability/loki",
+      "description": "按标签索引并保存日志。",
+      "parent": "ns-logging"
+    },
+    {
+      "id": "grafana",
+      "parent": "ns-logging",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Grafana",
+      "subtitle": "日志检索",
+      "icon": "grafana",
+      "repository": "shop-deploy",
+      "source": "observability/grafana",
+      "description": "检索日志的入口。"
+    },
+    {
+      "id": "payment",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "支付网关",
+      "subtitle": "第三方",
+      "icon": "plug",
+      "description": "处理支付并通知支付结果。",
+      "tier": 2
+    },
+    {
+      "id": "sms",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "短信服务",
+      "subtitle": "第三方",
+      "icon": "message",
+      "description": "发送订单通知短信。",
+      "tier": 2
+    }
+  ],
+  "edges": [
+    {
+      "source": "customer",
+      "target": "nginx",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "HTTPS",
+      "description": "访问商城与下单。"
+    },
+    {
+      "source": "operator",
+      "target": "nginx",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "HTTPS",
+      "description": "访问运营后台与看板。"
+    },
+    {
+      "source": "nginx",
+      "target": "web",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "静态资源",
+      "description": "/ 下的前端资源。"
+    },
+    {
+      "source": "nginx",
+      "target": "monolith",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "/api",
+      "description": "全部业务 API。"
+    },
+    {
+      "source": "nginx",
+      "target": "grafana",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "/grafana",
+      "description": "日志看板。"
+    },
+    {
+      "source": "monolith",
+      "target": "shop-config",
+      "kind": "EDGE_KIND_CONFIG",
+      "label": "启动加载",
+      "description": "读取连接配置。"
+    },
+    {
+      "source": "monolith",
+      "target": "postgres",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "SQL",
+      "description": "商品与订单数据。"
+    },
+    {
+      "source": "monolith",
+      "target": "redis",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "会话 · 缓存",
+      "description": "登录会话与商品缓存。"
+    },
+    {
+      "source": "monolith",
+      "target": "payment",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "支付 API",
+      "description": "创建支付单并查询结果。"
+    },
+    {
+      "source": "monolith",
+      "target": "sms",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "短信 API",
+      "description": "下单后同步发送通知，短信超时会拖慢下单。"
+    },
+    {
+      "source": "fluent-bit",
+      "target": "loki",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "推送日志",
+      "description": "按命名空间与应用打标签。"
+    },
+    {
+      "source": "grafana",
+      "target": "loki",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "LogQL",
+      "description": "检索日志。"
+    }
+  ],
+  "notes": [
+    {
+      "title": "单体承载全部业务",
+      "description": "商品、订单与通知共享进程和数据库，发布与故障互相影响。",
+      "nodes": ["monolith", "shop-config", "postgres"]
+    },
+    {
+      "title": "日志是唯一的观测手段",
+      "description": "没有链路，跨请求排障只能人工比对日志。",
+      "nodes": ["fluent-bit", "loki", "grafana"]
+    }
+  ]
+}

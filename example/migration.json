@@ -1,0 +1,26 @@
+{
+  "title": "迁移路线",
+  "phases": [
+    {
+      "title": "入口与数据底座",
+      "description": "以 Traefik 替换 Nginx，数据库按服务分库，引入缓存与事件总线。",
+      "nodes": ["traefik", "postgres", "valkey", "nats", "service-config"],
+      "retires": ["nginx", "redis"],
+      "exitCriteria": "单体经 Traefik 对外服务，读写 Valkey 与分库后的 PostgreSQL。"
+    },
+    {
+      "title": "拆分商品与订单",
+      "description": "商品、订单与通知拆为独立服务，测试环境以模拟器替代支付网关。",
+      "nodes": ["catalog-service", "order-service", "notifier", "mock-payment"],
+      "retires": ["monolith", "shop-config"],
+      "exitCriteria": "单体下线，下单链路在测试环境通过回归。"
+    },
+    {
+      "title": "统一遥测",
+      "description": "服务以 OTLP 上报日志与链路，Grafana 增加链路数据源。",
+      "nodes": ["otel-collector", "tempo", "grafana"],
+      "retires": ["fluent-bit"],
+      "exitCriteria": "任一订单可从日志跳转到完整链路。"
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Geist Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-violet: var(--violet);
+}
+
+:root {
+  color-scheme: light;
+  --background: #f7f3eb;
+  --foreground: #302a25;
+  --card: #fffdf8;
+  --canvas: #faf7f1;
+  --surface: #f4eee5;
+  --primary: #a4513c;
+  --muted: #f0e9df;
+  --muted-foreground: #71685e;
+  --accent: #f4e0d2;
+  --accent-foreground: #873e2e;
+  --border: #ddd4c8;
+  --input: #d4c9ba;
+  --ring: #b8664e;
+  --success: #2f7655;
+  --warning: #916117;
+  --info: #506985;
+  --violet: #71588b;
+  --graph-dots: #d8cfc2;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #1d1b18;
+  --foreground: #f3ede5;
+  --card: #27241f;
+  --canvas: #211f1b;
+  --surface: #312d27;
+  --primary: #e2a080;
+  --muted: #332f29;
+  --muted-foreground: #b7aca0;
+  --accent: #4a342b;
+  --accent-foreground: #f5c4a8;
+  --border: #514a40;
+  --input: #62574b;
+  --ring: #d99576;
+  --success: #87cca0;
+  --warning: #e7bc7b;
+  --info: #a5bad0;
+  --violet: #c3b0d8;
+  --graph-dots: #554d42;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@utility link {
+  @apply text-primary underline-offset-2 hover:underline;
+}
+
+.react-flow {
+  --xy-background-color: var(--canvas);
+}
+
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 9px 25px #0002;
+}
+
+.react-flow__controls-button {
+  border-bottom-color: var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  fill: var(--foreground);
+}
+
+.react-flow__controls-button:hover {
+  background: var(--accent);
+}
+
+.react-flow__minimap svg {
+  border-radius: inherit;
+}

@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package arch.v1;
+
+// Architecture 是一张架构图：节点经 parent 嵌套为集群、命名空间与分组，连线描述组件之间的关系。
+message Architecture {
+  string title = 1;
+  // 架构对应的代码基线，如各仓库默认分支或目标提案日期。
+  string baseline = 2;
+  repeated Repository repositories = 3;
+  repeated Node nodes = 4;
+  repeated Edge edges = 5;
+  // 架构要点，如现状问题或目标设计决策。
+  repeated Note notes = 6;
+  // 职责领域；声明后每个非外部叶子节点都须归属且仅归属一个领域。
+  repeated Domain domains = 7;
+  reserved 8;
+  reserved "phases";
+}
+
+// Domain 是职责归属与视图单元，与集群、命名空间等部署层级正交；领域之间经连线所示的接口协作。
+message Domain {
+  // 领域 ID，不与节点 ID 重复。
+  string id = 1;
+  string title = 2;
+  // 职责摘要。
+  string subtitle = 3;
+  // 图标键，由前端图标表解析。
+  string icon = 4;
+  string description = 5;
+  // 领域总览中的分组。
+  DomainCategory category = 6;
+}
+
+enum DomainCategory {
+  DOMAIN_CATEGORY_UNSPECIFIED = 0;
+  // 核心：生产必需，随产品交付。
+  DOMAIN_CATEGORY_CORE = 1;
+  // 可选：按需部署，缺失时核心领域仍可工作。
+  DOMAIN_CATEGORY_OPTIONAL = 2;
+  // 研发：非生产环境，不随生产交付。
+  DOMAIN_CATEGORY_DEVELOPMENT = 3;
+}
+
+// Note 是一条架构要点及其涉及的节点。
+message Note {
+  string title = 1;
+  string description = 2;
+  // 涉及节点 ID，容器节点代表其全部后代。
+  repeated string nodes = 3;
+}
+
+// Repository 是组件源码或部署定义所在的代码仓库。
+message Repository {
+  // 仓库短名，供 Node.repository 引用。
+  string id = 1;
+  // 仓库 Web 地址，规划中尚未创建的仓库为空。
+  string url = 2;
+  // 默认分支，用于生成源码链接。
+  string branch = 3;
+  string summary = 4;
+}
+
+enum NodeKind {
+  NODE_KIND_UNSPECIFIED = 0;
+  // 集群，容器节点。
+  NODE_KIND_CLUSTER = 1;
+  // 命名空间，容器节点。
+  NODE_KIND_NAMESPACE = 2;
+  // 职责分组，容器节点。
+  NODE_KIND_GROUP = 3;
+  // 运行组件。
+  NODE_KIND_COMPONENT = 4;
+  // 配置制品，如规则 ConfigMap 与 VMRule。
+  NODE_KIND_ARTIFACT = 5;
+  // 系统边界之外的用户、设备或服务。
+  NODE_KIND_EXTERNAL = 6;
+}
+
+message Node {
+  string id = 1;
+  // 所属容器节点 ID，为空表示顶层节点。
+  string parent = 2;
+  NodeKind kind = 3;
+  string title = 4;
+  // 技术栈、端口或规格摘要。
+  string subtitle = 5;
+  // 图标键，由前端图标表解析。
+  string icon = 6;
+  // 来源仓库 ID。
+  string repository = 7;
+  // 仓库内路径。
+  string source = 8;
+  string description = 9;
+  // 相对基线的变化。
+  Change change = 10;
+  // 顶层节点的纵向分层，数值小的在上、相同数值的并排；全部为 0 时按连线自动分层。
+  uint32 tier = 11;
+  // 所属领域 ID；容器节点的领域由全部后代继承，外部系统可按场景归属。
+  string domain = 12;
+}
+
+enum Change {
+  // 沿用。
+  CHANGE_UNSPECIFIED = 0;
+  // 新增组件，或尚未合入默认分支的组件。
+  CHANGE_ADDED = 1;
+  // 职责或接入方式发生改造。
+  CHANGE_REWORKED = 2;
+}
+
+enum EdgeKind {
+  EDGE_KIND_UNSPECIFIED = 0;
+  // 服务调用与数据写入。
+  EDGE_KIND_REQUEST = 1;
+  // 设备南向管理、遥测与 ZTP。
+  EDGE_KIND_SOUTHBOUND = 2;
+  // 配置与规则加载。
+  EDGE_KIND_CONFIG = 3;
+  // 异步事件发布与订阅。
+  EDGE_KIND_EVENT = 4;
+}
+
+// Edge 由发起方指向被访问方，同一对节点之间至多一条。
+message Edge {
+  string source = 1;
+  string target = 2;
+  EdgeKind kind = 3;
+  // 协议与端口摘要。
+  string label = 4;
+  string description = 5;
+}

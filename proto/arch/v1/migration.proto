@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package arch.v1;
+
+// Migration 是从现状架构走向目标架构的迁移路线，阶段按声明顺序执行。
+message Migration {
+  string title = 1;
+  repeated Phase phases = 2;
+}
+
+// Phase 是迁移路线的一个阶段：交付目标架构中的组件，下线现状架构中被替代的组件。
+message Phase {
+  string title = 1;
+  // 阶段目标与主要做法。
+  string description = 2;
+  // 交付的目标架构节点 ID，容器节点代表其全部后代；每个新增或改造的叶子节点恰好交付一次。
+  repeated string nodes = 3;
+  // 下线的现状架构叶子节点 ID；目标架构中不再存在的叶子节点恰好下线一次。
+  repeated string retires = 4;
+  // 完成标准。
+  string exit_criteria = 5;
+}
