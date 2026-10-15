@@ -1,0 +1,61 @@
+{
+  "nodes": [
+    {
+      "id": "ns-platform",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "platform",
+      "icon": "namespace",
+      "description": "共用中间件。",
+      "domain": "platform"
+    },
+    {
+      "id": "postgres",
+      "parent": "ns-platform",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "PostgreSQL",
+      "subtitle": "按服务分库",
+      "icon": "postgresql",
+      "repository": "shop-deploy",
+      "source": "postgres",
+      "description": "商品与订单各用独立的数据库与账号。",
+      "change": "CHANGE_REWORKED"
+    },
+    {
+      "id": "valkey",
+      "parent": "ns-platform",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Valkey",
+      "subtitle": "商品缓存",
+      "icon": "valkey",
+      "repository": "shop-deploy",
+      "source": "valkey",
+      "description": "开源的 Redis 兼容缓存，替代 Redis。",
+      "change": "CHANGE_ADDED"
+    },
+    {
+      "id": "nats",
+      "parent": "ns-platform",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "NATS JetStream",
+      "subtitle": "事件总线",
+      "icon": "nats",
+      "repository": "shop-deploy",
+      "source": "nats",
+      "description": "持久化订单事件，消费者可按需重放。",
+      "change": "CHANGE_ADDED"
+    },
+    {
+      "id": "service-config",
+      "parent": "ns-platform",
+      "kind": "NODE_KIND_ARTIFACT",
+      "title": "服务配置",
+      "subtitle": "ConfigMap · Secret",
+      "icon": "config",
+      "repository": "shop-deploy",
+      "source": "services",
+      "description": "各服务的连接配置与凭据，由部署仓库下发。",
+      "change": "CHANGE_ADDED"
+    }
+  ]
+}

@@ -3,8 +3,8 @@ import { focusHighlight, matchesQuery } from "@/graph/highlight";
 import { parseArchitecture } from "@/model/architecture";
 import { viewOf } from "@/model/views";
 
-const source = parseArchitecture(
-  JSON.stringify({
+const source = parseArchitecture({
+  "architecture.json": JSON.stringify({
     title: "t",
     repositories: [{ id: "repo" }],
     domains: [
@@ -22,7 +22,7 @@ const source = parseArchitecture(
     ],
     notes: [{ title: "n", nodes: ["db"] }],
   }),
-);
+});
 
 describe("focusHighlight in views", () => {
   it("projects notes and repositories onto domain boxes", () => {

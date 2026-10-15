@@ -9,9 +9,9 @@ import { DIAGRAMS, MIGRATION } from "@/model/diagrams";
 import { parseMigration, stepOf } from "@/model/migration";
 import { scopeOf, viewOf } from "@/model/views";
 
-const LOADED = DIAGRAMS.map(({ id, source }) => {
+const LOADED = DIAGRAMS.map(({ id, fragments }) => {
   try {
-    return { id, model: parseArchitecture(source), error: "" };
+    return { id, model: parseArchitecture(fragments), error: "" };
   } catch (error) {
     return { id, model: null, error: error instanceof Error ? error.message : "架构数据解析失败" };
   }

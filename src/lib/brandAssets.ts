@@ -4,6 +4,7 @@ import batfish from "@/assets/brands/batfish.png";
 import certManager from "@/assets/brands/cert-manager.svg";
 import containerlab from "@/assets/brands/containerlab.svg";
 import gnmic from "@/assets/brands/gnmic.svg";
+import jumpserver from "@/assets/brands/jumpserver.png";
 import kagent from "@/assets/brands/kagent.svg";
 import kea from "@/assets/brands/kea.png";
 import loki from "@/assets/brands/loki.svg";
@@ -29,6 +30,7 @@ export const BRAND_ICONS: Record<string, AssetIcon> = {
   "cert-manager": { asset: { src: certManager } },
   containerlab: { asset: { src: containerlab, lightBackground: true } },
   gnmic: { asset: { src: gnmic } },
+  jumpserver: { asset: { src: jumpserver } },
   kagent: { asset: { src: kagent } },
   kea: { asset: { src: kea, lightBackground: true } },
   loki: { asset: { src: loki } },

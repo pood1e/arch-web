@@ -10,13 +10,20 @@
 
 ## 数据
 
-数据目录包含三个文件：
+数据目录包含两张架构图的目录与一份迁移路线：
 
-| 文件 | 模型 | 内容 |
+| 路径 | 模型 | 内容 |
 | --- | --- | --- |
-| `current.json` | `arch.v1.Architecture` | 现状架构 |
-| `target.json` | `arch.v1.Architecture` | 目标架构 |
+| `current/**/*.json` | `arch.v1.Architecture` 片段 | 现状架构 |
+| `target/**/*.json` | `arch.v1.Architecture` 片段 | 目标架构 |
 | `migration.json` | `arch.v1.Migration` | 从现状到目标的迁移阶段 |
+
+一张架构图可拆成任意多个片段，便于按领域分文件维护和评审。片段按路径顺序以
+[Protobuf 合并语义](https://protobuf.com/docs/language-spec#merging-protobuf-messages)合成：列表字段依次追加，
+`title` 与 `baseline` 只能由一个片段声明；节点、连线与要点的引用在合成后整体校验，可以跨片段。
+[example](example) 的现状架构是单个片段，目标架构按领域拆分：`architecture.json` 放标题、仓库、领域目录、
+未归属领域的节点及其发起的连线，`domains/<领域>.json` 放领域内的节点、由本领域节点发起的连线与领域内要点，
+`notes.json` 放跨领域要点。
 
 `proto/arch/v1/architecture.proto` 定义架构图：
 
@@ -34,7 +41,8 @@
 每个新增或改造的目标叶子节点恰好交付一次，每个目标图中不再存在的现状叶子节点恰好下线一次。
 
 数据按 Proto JSON 映射严格解析：未知字段、非法枚举、悬空引用、容器环路、空容器、指向容器的连线、
-未归属、嵌套声明或缺少分类的领域，以及迁移阶段的漏排、重排或排入未改动节点都会使加载失败。
+未归属、嵌套声明或缺少分类的领域，重复声明标题或基线的片段，以及迁移阶段的漏排、重排或排入未改动节点
+都会使加载失败，片段的解析错误带文件路径。
 `src/model/diagrams.test.ts` 对所选数据做通用校验：图标已注册、组件与制品标注仓库、每个叶子节点都有连线、
 要点有说明、目标图中现状没有的组件带变更标记、每个领域视图不超过 30 个叶子节点。
 数据目录中的 `*.test.ts` 随单元测试运行，可经 `@/model` 为数据集编写专项断言，

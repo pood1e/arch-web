@@ -12,6 +12,7 @@
 | cert-manager | [cert-manager.svg](cert-manager.svg) | [原始资源](https://raw.githubusercontent.com/cncf/artwork/002662490acb2303c7301acc0256c00790e03e9f/projects/cert-manager/icon/color/cert-manager-icon-color.svg) |
 | containerlab | [containerlab.svg](containerlab.svg) | [原始资源](https://raw.githubusercontent.com/srl-labs/containerlab/00a360dcf492440f7e6a4c862697a54046e28d56/overrides/.icons/clab/icon.svg) |
 | gNMIc | [gnmic.svg](gnmic.svg) | [原始资源](https://raw.githubusercontent.com/openconfig/gnmic/c708f77bff0e403b435d1795a4aa1889d53084d0/docs/images/favicon.svg) |
+| JumpServer | [jumpserver.png](jumpserver.png) | [原始资源](https://raw.githubusercontent.com/jumpserver/jumpserver/ac331bb74f054883ffea1559c8a044eb66fcd794/apps/static/img/logo.png) |
 | kagent | [kagent.svg](kagent.svg) | [原始资源](https://raw.githubusercontent.com/cncf/artwork/002662490acb2303c7301acc0256c00790e03e9f/projects/kagent/icon/color/kagent-icon-color.svg) |
 | Kea | [kea.png](kea.png) | [原始资源](https://raw.githubusercontent.com/isc-projects/kea/1e161586ff9e8f6ec461aaa40b31f362e38f155d/doc/sphinx/static/kea-logo-200.png) |
 | Grafana Loki | [loki.svg](loki.svg) | [原始资源](https://grafana.com/static/img/logos/logo-loki.svg) |

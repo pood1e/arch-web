@@ -1,0 +1,97 @@
+{
+  "nodes": [
+    {
+      "id": "ns-observability",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "observability",
+      "icon": "namespace",
+      "description": "日志与链路。",
+      "domain": "observability"
+    },
+    {
+      "id": "otel-collector",
+      "parent": "ns-observability",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "OpenTelemetry Collector",
+      "subtitle": "OTLP 接收",
+      "icon": "opentelemetry",
+      "repository": "shop-deploy",
+      "source": "observability/collector",
+      "description": "接收服务上报的日志与链路，分别写入 Loki 与 Tempo。",
+      "change": "CHANGE_ADDED"
+    },
+    {
+      "id": "loki",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Loki",
+      "subtitle": "日志存储",
+      "icon": "loki",
+      "repository": "shop-deploy",
+      "source": "observability/loki",
+      "description": "按标签索引并保存日志。",
+      "parent": "ns-observability"
+    },
+    {
+      "id": "tempo",
+      "parent": "ns-observability",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Tempo",
+      "subtitle": "链路存储",
+      "icon": "tempo",
+      "repository": "shop-deploy",
+      "source": "observability/tempo",
+      "description": "保存分布式链路。",
+      "change": "CHANGE_ADDED"
+    },
+    {
+      "id": "grafana",
+      "parent": "ns-observability",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Grafana",
+      "subtitle": "日志 · 链路",
+      "icon": "grafana",
+      "repository": "shop-deploy",
+      "source": "observability/grafana",
+      "description": "增加链路数据源，日志与链路互相跳转。",
+      "change": "CHANGE_REWORKED"
+    }
+  ],
+  "edges": [
+    {
+      "source": "otel-collector",
+      "target": "loki",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "日志",
+      "description": "写入日志。"
+    },
+    {
+      "source": "otel-collector",
+      "target": "tempo",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "链路",
+      "description": "写入链路。"
+    },
+    {
+      "source": "grafana",
+      "target": "loki",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "LogQL",
+      "description": "检索日志。"
+    },
+    {
+      "source": "grafana",
+      "target": "tempo",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "TraceQL",
+      "description": "检索链路。"
+    }
+  ],
+  "notes": [
+    {
+      "title": "OTLP 统一遥测",
+      "description": "服务只对接 Collector，后端可替换；日志与链路在 Grafana 中互相跳转。",
+      "nodes": ["otel-collector", "loki", "tempo", "grafana"]
+    }
+  ]
+}

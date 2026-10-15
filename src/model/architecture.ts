@@ -1,4 +1,4 @@
-import { fromJsonString } from "@bufbuild/protobuf";
+import { create, fromJsonString, merge } from "@bufbuild/protobuf";
 import {
   type Edge as ArchEdge,
   type Architecture,
@@ -72,13 +72,45 @@ export function sourceUrl(repository: Repository, path: string): string {
   return `${repository.url}/-/tree/${repository.branch}/${path}`;
 }
 
-/** 按 Proto JSON 映射严格解析（拒绝未知字段与非法枚举），再校验引用完整性。 */
-export function parseArchitecture(json: string): ArchitectureModel {
-  const architecture = fromJsonString(ArchitectureSchema, json);
+/**
+ * 解析一张架构图的全部片段（路径 → Proto JSON）：逐片严格解析（拒绝未知字段与非法枚举），
+ * 按路径顺序以 Protobuf 合并语义合成，再校验引用完整性。
+ */
+export function parseArchitecture(fragments: Readonly<Record<string, string>>): ArchitectureModel {
+  const { architecture, problems } = mergeFragments(fragments);
   const model = indexArchitecture(architecture);
-  const problems = validateArchitecture(architecture, model);
+  problems.push(...validateArchitecture(architecture, model));
   if (problems.length) throw new Error(`架构数据无效：${problems.join("；")}`);
   return model;
+}
+
+const SINGULAR_FIELDS = [
+  ["title", "标题"],
+  ["baseline", "基线"],
+] as const;
+
+/** 列表字段按片段顺序追加；标题与基线只能由一个片段声明。 */
+function mergeFragments(fragments: Readonly<Record<string, string>>) {
+  const architecture = create(ArchitectureSchema);
+  const paths = Object.keys(fragments).sort();
+  const problems = paths.length ? [] : ["没有架构图片段"];
+  const declared = new Map<string, string>();
+  for (const path of paths) {
+    let fragment: Architecture;
+    try {
+      fragment = fromJsonString(ArchitectureSchema, fragments[path]);
+    } catch (error) {
+      throw new Error(`架构数据无效：${path}：${error instanceof Error ? error.message : error}`);
+    }
+    for (const [field, label] of SINGULAR_FIELDS) {
+      if (!fragment[field]) continue;
+      const previous = declared.get(field);
+      if (previous) problems.push(`${label}在 ${previous} 与 ${path} 中重复声明`);
+      declared.set(field, path);
+    }
+    merge(ArchitectureSchema, architecture, fragment);
+  }
+  return { architecture, problems };
 }
 
 function indexArchitecture(architecture: Architecture): ArchitectureModel {

@@ -1,0 +1,116 @@
+{
+  "nodes": [
+    {
+      "id": "ns-order",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "order",
+      "icon": "namespace",
+      "description": "订单领域。",
+      "domain": "order"
+    },
+    {
+      "id": "order-service",
+      "parent": "ns-order",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "订单服务",
+      "subtitle": "下单 · 支付",
+      "icon": "springboot",
+      "repository": "shop-order",
+      "source": "order",
+      "description": "下单时经商品服务扣减库存，调用支付网关并发布订单事件。",
+      "change": "CHANGE_ADDED"
+    },
+    {
+      "id": "notifier",
+      "parent": "ns-order",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "通知服务",
+      "subtitle": "订阅订单事件",
+      "icon": "bell",
+      "repository": "shop-order",
+      "source": "notifier",
+      "description": "消费订单事件发送短信，短信失败不影响下单。",
+      "change": "CHANGE_ADDED"
+    }
+  ],
+  "edges": [
+    {
+      "source": "order-service",
+      "target": "catalog-service",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "扣减库存",
+      "description": "下单时校验并扣减库存。"
+    },
+    {
+      "source": "order-service",
+      "target": "postgres",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "SQL · orders",
+      "description": "订单与支付记录。"
+    },
+    {
+      "source": "order-service",
+      "target": "nats",
+      "kind": "EDGE_KIND_EVENT",
+      "label": "订单事件",
+      "description": "发布下单、支付与取消事件。"
+    },
+    {
+      "source": "notifier",
+      "target": "nats",
+      "kind": "EDGE_KIND_EVENT",
+      "label": "订阅订单事件",
+      "description": "持久订阅，失败重试。"
+    },
+    {
+      "source": "notifier",
+      "target": "sms",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "短信 API",
+      "description": "发送订单通知。"
+    },
+    {
+      "source": "order-service",
+      "target": "payment",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "支付 API",
+      "description": "创建支付单并查询结果。"
+    },
+    {
+      "source": "order-service",
+      "target": "mock-payment",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "测试支付",
+      "description": "测试环境以模拟器替代支付网关。"
+    },
+    {
+      "source": "order-service",
+      "target": "service-config",
+      "kind": "EDGE_KIND_CONFIG",
+      "label": "挂载",
+      "description": "连接配置与凭据。"
+    },
+    {
+      "source": "notifier",
+      "target": "service-config",
+      "kind": "EDGE_KIND_CONFIG",
+      "label": "挂载",
+      "description": "连接配置与凭据。"
+    },
+    {
+      "source": "order-service",
+      "target": "otel-collector",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "OTLP",
+      "description": "日志与链路。"
+    },
+    {
+      "source": "notifier",
+      "target": "otel-collector",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "OTLP",
+      "description": "日志与链路。"
+    }
+  ]
+}

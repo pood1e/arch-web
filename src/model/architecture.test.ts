@@ -28,9 +28,16 @@ const edges = [
 const notes = [{ title: "要点", description: "说明", nodes: ["ns", "user"] }];
 
 function parse(patch: Record<string, unknown>) {
-  return parseArchitecture(
-    JSON.stringify({ title: "t", repositories, nodes, edges, notes, ...patch }),
-  );
+  return parseArchitecture({
+    "architecture.json": JSON.stringify({
+      title: "t",
+      repositories,
+      nodes,
+      edges,
+      notes,
+      ...patch,
+    }),
+  });
 }
 
 describe("parseArchitecture", () => {
@@ -161,5 +168,57 @@ describe("parseArchitecture", () => {
     ],
   ])("rejects %s", (_, patch, message) => {
     expect(() => parse(patch)).toThrow(message);
+  });
+});
+
+describe("parseArchitecture fragments", () => {
+  const [cluster, ns, api, db, user] = nodes;
+  const fragment = (value: Record<string, unknown>) => JSON.stringify(value);
+
+  it("merges fragments in path order, appending repeated fields", () => {
+    const model = parseArchitecture({
+      "domains/app.json": fragment({ nodes: [api, db], edges: [edges[1]] }),
+      "architecture.json": fragment({
+        title: "t",
+        repositories,
+        nodes: [cluster, ns, user],
+        edges: [edges[0]],
+      }),
+    });
+    expect(model.title).toBe("t");
+    expect([...model.nodes.keys()]).toEqual(["cluster", "ns", "user", "api", "db"]);
+    expect([...model.edges.keys()]).toEqual(["user->api", "api->db"]);
+    expect(leavesOf(model, "cluster")).toEqual(["api", "db"]);
+  });
+
+  it("validates references across fragments", () => {
+    const fragments = {
+      "a.json": fragment({ title: "t", nodes, edges }),
+      "b.json": fragment({
+        edges: [{ source: "user", target: "nope", kind: "EDGE_KIND_REQUEST" }],
+      }),
+    };
+    expect(() => parseArchitecture(fragments)).toThrow("端点 nope 不是叶子节点");
+  });
+
+  it.each([
+    [
+      "an invalid fragment by path",
+      { "a.json": fragment({ title: "t", nodes }), "b.json": fragment({ owner: "x" }) },
+      "b.json",
+    ],
+    [
+      "a title declared twice",
+      { "a.json": fragment({ title: "t", nodes }), "b.json": fragment({ title: "u" }) },
+      "标题在 a.json 与 b.json 中重复声明",
+    ],
+    [
+      "a baseline declared twice",
+      { "a.json": fragment({ baseline: "x", nodes }), "b.json": fragment({ baseline: "y" }) },
+      "基线在 a.json 与 b.json 中重复声明",
+    ],
+    ["a diagram without fragments", {}, "没有架构图片段"],
+  ])("rejects %s", (_, fragments, message) => {
+    expect(() => parseArchitecture(fragments)).toThrow(message);
   });
 });

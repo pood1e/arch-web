@@ -6,8 +6,8 @@ import { parseMigration } from "@/model/migration";
 import { viewOf } from "@/model/views";
 
 // 通用校验，作用于 ARCH_DATA 选择的数据；各数据集的专项断言放在数据旁边。
-describe.each(DIAGRAMS)("$id architecture data", ({ source }) => {
-  const model = parseArchitecture(source);
+describe.each(DIAGRAMS)("$id architecture data", ({ fragments }) => {
+  const model = parseArchitecture(fragments);
   const nodes = [...model.nodes.values()];
 
   it("uses registered icons only", () => {
@@ -38,8 +38,8 @@ describe.each(DIAGRAMS)("$id architecture data", ({ source }) => {
 });
 
 describe("migration to the target architecture", () => {
-  const current = parseArchitecture(DIAGRAMS[0].source);
-  const target = parseArchitecture(DIAGRAMS[1].source);
+  const current = parseArchitecture(DIAGRAMS[0].fragments);
+  const target = parseArchitecture(DIAGRAMS[1].fragments);
 
   it("delivers every change and retires every removed component exactly once", () => {
     expect(parseMigration(MIGRATION.source, current, target).phases.length).toBeGreaterThan(0);

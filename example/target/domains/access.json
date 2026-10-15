@@ -1,0 +1,73 @@
+{
+  "nodes": [
+    {
+      "id": "ns-ingress",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "ingress",
+      "icon": "namespace",
+      "description": "统一入口。",
+      "domain": "access"
+    },
+    {
+      "id": "traefik",
+      "parent": "ns-ingress",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "Traefik",
+      "subtitle": "入口 · 自动证书",
+      "icon": "traefik",
+      "repository": "shop-deploy",
+      "source": "traefik",
+      "description": "按 Host 与路径路由到前端与各领域 API，证书自动续期，替代 Nginx。",
+      "change": "CHANGE_ADDED"
+    },
+    {
+      "id": "web",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "商城前端",
+      "subtitle": "Vue · 单页应用",
+      "icon": "vue",
+      "repository": "shop-web",
+      "source": "src",
+      "description": "顾客端与运营后台共用的单页应用。",
+      "parent": "ns-ingress"
+    }
+  ],
+  "edges": [
+    {
+      "source": "traefik",
+      "target": "web",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "静态资源",
+      "description": "/ 下的前端资源。"
+    },
+    {
+      "source": "traefik",
+      "target": "catalog-service",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "/api/catalog",
+      "description": "商品 API。"
+    },
+    {
+      "source": "traefik",
+      "target": "order-service",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "/api/orders",
+      "description": "订单 API。"
+    },
+    {
+      "source": "traefik",
+      "target": "grafana",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "/grafana",
+      "description": "日志与链路看板。"
+    }
+  ],
+  "notes": [
+    {
+      "title": "统一入口",
+      "description": "Traefik 按 Host 与路径路由，证书自动续期。",
+      "nodes": ["traefik"]
+    }
+  ]
+}
