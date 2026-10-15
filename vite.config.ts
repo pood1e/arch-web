@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-// ARCH_DATA 指向存放 current.json、target.json 与 migration.json 的目录，默认为 example；
+// ARCH_DATA 指向数据目录，默认为 example：current/ 与 target/ 存放架构图片段，migration.json 为迁移路线；
 // 目录中的 *.test.ts 随单元测试运行。
 const data = resolve(process.env.ARCH_DATA || "example");
 

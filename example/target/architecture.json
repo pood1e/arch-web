@@ -1,0 +1,139 @@
+{
+  "title": "目标架构",
+  "baseline": "示例商城 · 按领域拆分",
+  "repositories": [
+    {
+      "id": "shop-web",
+      "url": "https://gitlab.example.com/shop/web",
+      "branch": "main",
+      "summary": "商城前端"
+    },
+    {
+      "id": "shop-deploy",
+      "url": "https://gitlab.example.com/shop/deploy",
+      "branch": "main",
+      "summary": "部署编排与中间件配置"
+    },
+    {
+      "id": "shop-catalog",
+      "url": "https://gitlab.example.com/shop/catalog",
+      "branch": "main",
+      "summary": "商品服务"
+    },
+    {
+      "id": "shop-order",
+      "summary": "订单、通知与支付模拟器，规划中"
+    }
+  ],
+  "domains": [
+    {
+      "id": "access",
+      "title": "入口",
+      "subtitle": "Traefik · 前端",
+      "icon": "entry",
+      "description": "统一入口：按 Host 与路径把请求路由到前端与各领域 API。",
+      "category": "DOMAIN_CATEGORY_CORE"
+    },
+    {
+      "id": "catalog",
+      "title": "商品",
+      "subtitle": "商品 · 库存",
+      "icon": "inventory",
+      "description": "商品资料与库存，供下单校验。",
+      "category": "DOMAIN_CATEGORY_CORE"
+    },
+    {
+      "id": "order",
+      "title": "订单",
+      "subtitle": "下单 · 支付 · 通知",
+      "icon": "ticket",
+      "description": "下单与支付，以订单事件驱动通知。",
+      "category": "DOMAIN_CATEGORY_CORE"
+    },
+    {
+      "id": "platform",
+      "title": "平台底座",
+      "subtitle": "数据库 · 缓存 · 事件",
+      "icon": "platform",
+      "description": "各领域共用的有状态中间件与配置。",
+      "category": "DOMAIN_CATEGORY_CORE"
+    },
+    {
+      "id": "observability",
+      "title": "可观测",
+      "subtitle": "日志 · 链路",
+      "icon": "telescope",
+      "description": "服务以 OTLP 上报日志与链路；缺失时业务不受影响。",
+      "category": "DOMAIN_CATEGORY_OPTIONAL"
+    },
+    {
+      "id": "dev",
+      "title": "研发",
+      "subtitle": "测试替身",
+      "icon": "flask",
+      "description": "只在测试环境部署的替身服务。",
+      "category": "DOMAIN_CATEGORY_DEVELOPMENT"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "customer",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "顾客",
+      "subtitle": "浏览器 · App",
+      "icon": "user",
+      "description": "浏览商品、下单与支付。"
+    },
+    {
+      "id": "operator",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "运营人员",
+      "subtitle": "运营后台 · 看板",
+      "icon": "user",
+      "description": "维护商品、处理订单并查看看板。"
+    },
+    {
+      "id": "cluster",
+      "kind": "NODE_KIND_CLUSTER",
+      "title": "K3s 集群",
+      "subtitle": "三节点",
+      "icon": "k3s",
+      "description": "承载商城全部服务与中间件。",
+      "tier": 1
+    },
+    {
+      "id": "payment",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "支付网关",
+      "subtitle": "第三方",
+      "icon": "plug",
+      "description": "处理支付并通知支付结果。",
+      "tier": 2
+    },
+    {
+      "id": "sms",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "短信服务",
+      "subtitle": "第三方",
+      "icon": "message",
+      "description": "发送订单通知短信。",
+      "tier": 2
+    }
+  ],
+  "edges": [
+    {
+      "source": "customer",
+      "target": "traefik",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "HTTPS",
+      "description": "访问商城与下单。"
+    },
+    {
+      "source": "operator",
+      "target": "traefik",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "HTTPS",
+      "description": "访问运营后台与看板。"
+    }
+  ]
+}

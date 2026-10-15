@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EdgeKind, parseArchitecture } from "@/model/architecture";
 import { represent, scopeOf, viewOf } from "@/model/views";
 
-const source = parseArchitecture(
-  JSON.stringify({
+const source = parseArchitecture({
+  "architecture.json": JSON.stringify({
     title: "t",
     domains: [
       { id: "a", title: "领域 A", category: "DOMAIN_CATEGORY_CORE" },
@@ -29,7 +29,7 @@ const source = parseArchitecture(
       { source: "worker", target: "device", kind: "EDGE_KIND_SOUTHBOUND" },
     ],
   }),
-);
+});
 
 describe("domain overview", () => {
   const view = viewOf(source, "");
@@ -114,8 +114,8 @@ describe("scopeOf", () => {
 
 describe("architecture without domains", () => {
   it("has a single view equal to the source", () => {
-    const plain = parseArchitecture(
-      JSON.stringify({
+    const plain = parseArchitecture({
+      "architecture.json": JSON.stringify({
         title: "t",
         nodes: [
           { id: "a", kind: "NODE_KIND_COMPONENT", title: "a" },
@@ -123,7 +123,7 @@ describe("architecture without domains", () => {
         ],
         edges: [{ source: "a", target: "b", kind: "EDGE_KIND_REQUEST" }],
       }),
-    );
+    });
     const view = viewOf(plain, "");
     expect([...view.model.nodes.keys()]).toEqual(["a", "b"]);
     expect([...view.model.edges.keys()]).toEqual(["a->b"]);

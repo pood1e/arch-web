@@ -1,0 +1,14 @@
+{
+  "notes": [
+    {
+      "title": "按领域拆分单体",
+      "description": "商品与订单独立部署、独立数据库，订单经 API 扣减库存。",
+      "nodes": ["catalog-service", "order-service", "postgres"]
+    },
+    {
+      "title": "订单事件驱动通知",
+      "description": "通知服务订阅订单事件，短信渠道故障不阻塞下单。",
+      "nodes": ["order-service", "nats", "notifier"]
+    }
+  ]
+}

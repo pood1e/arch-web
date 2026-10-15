@@ -1,0 +1,32 @@
+{
+  "nodes": [
+    {
+      "id": "ns-dev",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "dev",
+      "icon": "namespace",
+      "description": "测试替身。",
+      "domain": "dev"
+    },
+    {
+      "id": "mock-payment",
+      "parent": "ns-dev",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "支付模拟器",
+      "subtitle": "测试环境",
+      "icon": "mock",
+      "repository": "shop-order",
+      "source": "mock",
+      "description": "模拟支付网关的成功、失败与超时，只在测试环境部署。",
+      "change": "CHANGE_ADDED"
+    }
+  ],
+  "notes": [
+    {
+      "title": "测试替身只在研发环境",
+      "description": "支付模拟器不随生产交付。",
+      "nodes": ["mock-payment"]
+    }
+  ]
+}

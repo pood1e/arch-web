@@ -1,0 +1,55 @@
+{
+  "nodes": [
+    {
+      "id": "ns-catalog",
+      "parent": "cluster",
+      "kind": "NODE_KIND_NAMESPACE",
+      "title": "catalog",
+      "icon": "namespace",
+      "description": "商品领域。",
+      "domain": "catalog"
+    },
+    {
+      "id": "catalog-service",
+      "parent": "ns-catalog",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "商品服务",
+      "subtitle": "商品 · 库存",
+      "icon": "springboot",
+      "repository": "shop-catalog",
+      "source": "cmd/catalog",
+      "description": "从单体拆出的商品与库存服务，商品读取走缓存。",
+      "change": "CHANGE_ADDED"
+    }
+  ],
+  "edges": [
+    {
+      "source": "catalog-service",
+      "target": "postgres",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "SQL · catalog",
+      "description": "商品与库存。"
+    },
+    {
+      "source": "catalog-service",
+      "target": "valkey",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "商品缓存",
+      "description": "热门商品读缓存。"
+    },
+    {
+      "source": "catalog-service",
+      "target": "service-config",
+      "kind": "EDGE_KIND_CONFIG",
+      "label": "挂载",
+      "description": "连接配置与凭据。"
+    },
+    {
+      "source": "catalog-service",
+      "target": "otel-collector",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "OTLP",
+      "description": "日志与链路。"
+    }
+  ]
+}

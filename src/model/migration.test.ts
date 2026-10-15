@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { parseArchitecture } from "@/model/architecture";
 import { parseMigration, stepOf } from "@/model/migration";
 
-const baseline = parseArchitecture(
-  JSON.stringify({
+const baseline = parseArchitecture({
+  "architecture.json": JSON.stringify({
     title: "现状",
     nodes: [
       { id: "legacy", kind: "NODE_KIND_COMPONENT" },
@@ -11,9 +11,9 @@ const baseline = parseArchitecture(
       { id: "preserved", kind: "NODE_KIND_COMPONENT" },
     ],
   }),
-);
-const target = parseArchitecture(
-  JSON.stringify({
+});
+const target = parseArchitecture({
+  "architecture.json": JSON.stringify({
     title: "目标",
     nodes: [
       { id: "shared", kind: "NODE_KIND_COMPONENT", change: "CHANGE_REWORKED" },
@@ -23,7 +23,7 @@ const target = parseArchitecture(
       { id: "child", parent: "group", kind: "NODE_KIND_COMPONENT", change: "CHANGE_ADDED" },
     ],
   }),
-);
+});
 const phases = [
   {
     title: "替换",

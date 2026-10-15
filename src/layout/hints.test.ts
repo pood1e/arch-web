@@ -3,8 +3,8 @@ import { layoutHints } from "@/layout/hints";
 import { parseArchitecture } from "@/model/architecture";
 import { viewOf } from "@/model/views";
 
-const source = parseArchitecture(
-  JSON.stringify({
+const source = parseArchitecture({
+  "architecture.json": JSON.stringify({
     title: "t",
     domains: [
       { id: "a", title: "领域 A", category: "DOMAIN_CATEGORY_CORE" },
@@ -34,7 +34,7 @@ const source = parseArchitecture(
       { source: "worker", target: "device", kind: "EDGE_KIND_SOUTHBOUND" },
     ],
   }),
-);
+});
 
 describe("layoutHints", () => {
   it("weights merged connections by their calls only", () => {
@@ -64,8 +64,8 @@ describe("layoutHints", () => {
   });
 
   it("skips partitions for diagrams without tiers", () => {
-    const plain = parseArchitecture(
-      JSON.stringify({
+    const plain = parseArchitecture({
+      "architecture.json": JSON.stringify({
         title: "t",
         nodes: [
           { id: "x", kind: "NODE_KIND_COMPONENT", title: "x" },
@@ -73,7 +73,7 @@ describe("layoutHints", () => {
         ],
         edges: [{ source: "x", target: "y", kind: "EDGE_KIND_REQUEST" }],
       }),
-    );
+    });
     expect(layoutHints(viewOf(plain, "")).partitions.size).toBe(0);
   });
 });
