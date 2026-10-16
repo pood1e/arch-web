@@ -7,6 +7,7 @@ import gnmic from "@/assets/brands/gnmic.svg";
 import jumpserver from "@/assets/brands/jumpserver.png";
 import kagent from "@/assets/brands/kagent.svg";
 import kea from "@/assets/brands/kea.png";
+import langfuse from "@/assets/brands/langfuse.svg";
 import loki from "@/assets/brands/loki.svg";
 import netbox from "@/assets/brands/netbox.svg";
 import oauth2Proxy from "@/assets/brands/oauth2-proxy.svg";
@@ -33,6 +34,7 @@ export const BRAND_ICONS: Record<string, AssetIcon> = {
   jumpserver: { asset: { src: jumpserver } },
   kagent: { asset: { src: kagent } },
   kea: { asset: { src: kea, lightBackground: true } },
+  langfuse: { asset: { src: langfuse } },
   loki: { asset: { src: loki } },
   netbox: { asset: { src: netbox } },
   "oauth2-proxy": { asset: { src: oauth2Proxy } },

@@ -15,6 +15,7 @@
 | JumpServer | [jumpserver.png](jumpserver.png) | [原始资源](https://raw.githubusercontent.com/jumpserver/jumpserver/ac331bb74f054883ffea1559c8a044eb66fcd794/apps/static/img/logo.png) |
 | kagent | [kagent.svg](kagent.svg) | [原始资源](https://raw.githubusercontent.com/cncf/artwork/002662490acb2303c7301acc0256c00790e03e9f/projects/kagent/icon/color/kagent-icon-color.svg) |
 | Kea | [kea.png](kea.png) | [原始资源](https://raw.githubusercontent.com/isc-projects/kea/1e161586ff9e8f6ec461aaa40b31f362e38f155d/doc/sphinx/static/kea-logo-200.png) |
+| Langfuse | [langfuse.svg](langfuse.svg) | [官方品牌资源](https://langfuse.com/brand) · [原始资源](https://langfuse.com/brand-assets/icon/color/langfuse-icon.svg) |
 | Grafana Loki | [loki.svg](loki.svg) | [原始资源](https://grafana.com/static/img/logos/logo-loki.svg) |
 | NetBox | [netbox.svg](netbox.svg) | [原始资源](https://raw.githubusercontent.com/netbox-community/netbox/3d8dbeaec7abfefce2a215cccc8ed4592bc49b0e/netbox/project-static/img/netbox_icon.svg) |
 | OAuth2 Proxy | [oauth2-proxy.svg](oauth2-proxy.svg) | [原始资源](https://raw.githubusercontent.com/oauth2-proxy/oauth2-proxy/bea3f04bf87b93f5354f392fe2216a88e6031350/docs/static/img/logos/OAuth2_Proxy_icon.svg) |
