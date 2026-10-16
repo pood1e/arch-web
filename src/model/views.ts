@@ -15,7 +15,7 @@ import { groupOverview } from "@/model/overview";
 
 /**
  * 架构图的一个视图。总览把每个领域折叠为方框并按分类分组，连线按领域对合并；领域视图展开该领域及其所在
- * 容器，只保留与之相连的相邻领域（折叠为方框）与未归属领域的外部系统，连向同一方框的同类连线合并。
+ * 容器，相邻领域折叠为方框并保留其组件的公共容器，未归属领域的外部系统保持原位，同类连线合并。
  * 未划分领域的架构图只有一个完整视图。
  */
 export interface DiagramView {
@@ -103,8 +103,16 @@ function projectView(source: ArchitectureModel, scope: string): DiagramView {
       ? [...leaves.filter(expanded), ...[...bundles.values()].flatMap((b) => [b.source, b.target])]
       : leaves.map(endpoint),
   );
+  const boxes = new Map(
+    [...visible]
+      .filter((id) => source.domains.has(id))
+      .map((id) => [id, domainBox(source, id, overview)]),
+  );
   const framed = new Set(
-    [...visible].flatMap((id) => ancestors(source, id).map((ancestor) => ancestor.id)),
+    [...visible].flatMap((id) => {
+      const parent = (boxes.get(id) ?? source.nodes.get(id))?.parent;
+      return parent ? [...ancestors(source, parent).map((node) => node.id), parent] : [];
+    }),
   );
   const projected = new Map<string, ArchNode>();
   for (const node of source.nodes.values()) {
@@ -113,8 +121,7 @@ function projectView(source: ArchitectureModel, scope: string): DiagramView {
       continue;
     }
     const id = endpoint(node.id);
-    if (visible.has(id) && !projected.has(id))
-      projected.set(id, id === node.id ? node : domainBox(source, id));
+    if (visible.has(id) && !projected.has(id)) projected.set(id, boxes.get(id) ?? node);
   }
   const nodes = overview ? groupOverview(source, projected) : projected;
 
@@ -137,15 +144,21 @@ function projectView(source: ArchitectureModel, scope: string): DiagramView {
   };
 }
 
-/** 折叠的领域按普通叶子排布，分层取其组件所在顶层节点的最小 tier。 */
-function domainBox(source: ArchitectureModel, id: string): ArchNode {
+/** 领域详情保留全部组件的最近公共容器；总览按领域分类分组，分层取顶层节点的最小 tier。 */
+function domainBox(source: ArchitectureModel, id: string, overview: boolean): ArchNode {
   const domain = source.domains.get(id);
-  const tiers = domainLeaves(source, id).map(
-    (leaf) => (ancestors(source, leaf)[0] ?? source.nodes.get(leaf))?.tier ?? 0,
+  const leaves = domainLeaves(source, id);
+  const chains = leaves.map((leaf) => ancestors(source, leaf));
+  const parent = chains[0]?.findLast((node, index) =>
+    chains.every((chain) => chain[index]?.id === node.id),
+  );
+  const tiers = chains.map(
+    (chain, index) => (chain[0] ?? source.nodes.get(leaves[index]))?.tier ?? 0,
   );
   return create(NodeSchema, {
     id,
     kind: NodeKind.COMPONENT,
+    parent: overview ? "" : parent?.id,
     title: domain?.title,
     subtitle: domain?.subtitle,
     icon: domain?.icon,

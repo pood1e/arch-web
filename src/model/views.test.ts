@@ -2,34 +2,33 @@ import { describe, expect, it } from "vitest";
 import { EdgeKind, parseArchitecture } from "@/model/architecture";
 import { represent, scopeOf, viewOf } from "@/model/views";
 
-const source = parseArchitecture({
-  "architecture.json": JSON.stringify({
-    title: "t",
-    domains: [
-      { id: "a", title: "领域 A", category: "DOMAIN_CATEGORY_CORE" },
-      { id: "b", title: "领域 B", category: "DOMAIN_CATEGORY_CORE" },
-    ],
-    nodes: [
-      { id: "user", kind: "NODE_KIND_EXTERNAL", title: "用户" },
-      { id: "cluster", kind: "NODE_KIND_CLUSTER", title: "集群", tier: 1 },
-      { id: "ns-a", parent: "cluster", kind: "NODE_KIND_NAMESPACE", title: "a", domain: "a" },
-      { id: "api", parent: "ns-a", kind: "NODE_KIND_COMPONENT", title: "api" },
-      { id: "worker", parent: "ns-a", kind: "NODE_KIND_COMPONENT", title: "worker" },
-      { id: "ns-b", parent: "cluster", kind: "NODE_KIND_NAMESPACE", title: "b", domain: "b" },
-      { id: "db", parent: "ns-b", kind: "NODE_KIND_COMPONENT", title: "db" },
-      { id: "queue", parent: "ns-b", kind: "NODE_KIND_COMPONENT", title: "queue" },
-      { id: "device", kind: "NODE_KIND_EXTERNAL", title: "设备", tier: 2 },
-    ],
-    edges: [
-      { source: "user", target: "api", kind: "EDGE_KIND_REQUEST", label: "HTTPS" },
-      { source: "api", target: "worker", kind: "EDGE_KIND_REQUEST" },
-      { source: "api", target: "db", kind: "EDGE_KIND_REQUEST", label: "SQL" },
-      { source: "worker", target: "db", kind: "EDGE_KIND_REQUEST" },
-      { source: "worker", target: "queue", kind: "EDGE_KIND_EVENT" },
-      { source: "worker", target: "device", kind: "EDGE_KIND_SOUTHBOUND" },
-    ],
-  }),
-});
+const definition = {
+  title: "t",
+  domains: [
+    { id: "a", title: "领域 A", category: "DOMAIN_CATEGORY_CORE" },
+    { id: "b", title: "领域 B", category: "DOMAIN_CATEGORY_CORE" },
+  ],
+  nodes: [
+    { id: "user", kind: "NODE_KIND_EXTERNAL", title: "用户" },
+    { id: "cluster", kind: "NODE_KIND_CLUSTER", title: "集群", tier: 1 },
+    { id: "ns-a", parent: "cluster", kind: "NODE_KIND_NAMESPACE", title: "a", domain: "a" },
+    { id: "api", parent: "ns-a", kind: "NODE_KIND_COMPONENT", title: "api" },
+    { id: "worker", parent: "ns-a", kind: "NODE_KIND_COMPONENT", title: "worker" },
+    { id: "ns-b", parent: "cluster", kind: "NODE_KIND_NAMESPACE", title: "b", domain: "b" },
+    { id: "db", parent: "ns-b", kind: "NODE_KIND_COMPONENT", title: "db" },
+    { id: "queue", parent: "ns-b", kind: "NODE_KIND_COMPONENT", title: "queue" },
+    { id: "device", kind: "NODE_KIND_EXTERNAL", title: "设备", tier: 2 },
+  ],
+  edges: [
+    { source: "user", target: "api", kind: "EDGE_KIND_REQUEST", label: "HTTPS" },
+    { source: "api", target: "worker", kind: "EDGE_KIND_REQUEST" },
+    { source: "api", target: "db", kind: "EDGE_KIND_REQUEST", label: "SQL" },
+    { source: "worker", target: "db", kind: "EDGE_KIND_REQUEST" },
+    { source: "worker", target: "queue", kind: "EDGE_KIND_EVENT" },
+    { source: "worker", target: "device", kind: "EDGE_KIND_SOUTHBOUND" },
+  ],
+};
+const source = parseArchitecture({ "architecture.json": JSON.stringify(definition) });
 
 describe("domain overview", () => {
   const view = viewOf(source, "");
@@ -73,10 +72,15 @@ describe("domain view", () => {
       "ns-a",
       "api",
       "worker",
+      "ns-b",
       "b",
       "device",
     ]);
-    expect(view.model.children.get("cluster")?.map((node) => node.id)).toEqual(["ns-a"]);
+    expect(view.model.children.get("cluster")?.map((node) => node.id)).toEqual(["ns-a", "ns-b"]);
+    expect(view.model.nodes.get("b")?.parent).toBe("ns-b");
+    expect(view.model.nodes.get("ns-b")?.parent).toBe("cluster");
+    expect(source.nodes.has("b")).toBe(false);
+    expect(source.nodes.get("db")?.parent).toBe("ns-b");
     expect(represent(view, "queue")).toBe("b");
     expect(represent(view, "worker")).toBe("worker");
   });
@@ -97,6 +101,37 @@ describe("domain view", () => {
   it("is cached per scope and falls back to the overview", () => {
     expect(viewOf(source, "a")).toBe(view);
     expect(viewOf(source, "nope")).toBe(viewOf(source, ""));
+  });
+
+  it.each([
+    ["cluster", "cluster"],
+    ["other-cluster", ""],
+    ["", ""],
+  ])("places a domain spanning roots at %j in %j", (parent, expected) => {
+    const fragments = {
+      "architecture.json": JSON.stringify({
+        ...definition,
+        nodes: [
+          ...definition.nodes,
+          ...(parent === "other-cluster"
+            ? [{ id: "other-cluster", kind: "NODE_KIND_CLUSTER", title: "Other cluster" }]
+            : []),
+          { id: "other-ns", kind: "NODE_KIND_NAMESPACE", parent, title: "Other namespace" },
+          {
+            id: "other-db",
+            kind: "NODE_KIND_COMPONENT",
+            parent: "other-ns",
+            domain: "b",
+            title: "Other database",
+          },
+        ],
+      }),
+    };
+    const spanning = parseArchitecture(fragments);
+    const projected = viewOf(spanning, "a").model;
+    expect(projected.nodes.get("b")?.parent).toBe(expected);
+    expect(projected.nodes.has("other-ns")).toBe(false);
+    expect(projected.nodes.has("ns-b")).toBe(false);
   });
 });
 

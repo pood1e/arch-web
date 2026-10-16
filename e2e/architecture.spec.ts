@@ -67,6 +67,27 @@ test("drills from the overview into domains", async ({ page }) => {
   await expect(page.locator(".react-flow__node-leaf")).toHaveCount(10);
 });
 
+test("keeps collapsed neighbours inside their deployment container", async ({ page }) => {
+  await open(page, "target/order", 9);
+  for (const id of ["access", "catalog", "platform", "observability", "dev"])
+    await expect
+      .poll(async () => {
+        const [cluster, domain] = await Promise.all([
+          node(page, "cluster").boundingBox(),
+          node(page, id).boundingBox(),
+        ]);
+        return !!(
+          cluster &&
+          domain &&
+          domain.x >= cluster.x &&
+          domain.y >= cluster.y &&
+          domain.x + domain.width <= cluster.x + cluster.width &&
+          domain.y + domain.height <= cluster.y + cluster.height
+        );
+      })
+      .toBe(true);
+});
+
 test("shows component details, source links and connections", async ({ page }) => {
   await open(page, "current", 13);
   await select(page, "monolith");
