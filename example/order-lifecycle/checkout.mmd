@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  actor C as 顾客
+  participant O as 订单服务
+  participant S as 商品服务
+  participant P as 支付网关
+  participant N as NATS JetStream
+  C->>O: 提交订单
+  O->>S: 扣减库存
+  S-->>O: 库存已锁定
+  O->>P: 创建支付
+  P-->>C: 跳转支付页
+  C->>P: 完成支付
+  P-->>O: 支付回调
+  O->>N: 发布订单已支付事件
+  Note over N: 通知服务订阅后发送短信

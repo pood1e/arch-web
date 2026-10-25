@@ -9,6 +9,7 @@ test("navigates migration phases and their components in both architectures", as
     "迁移路线",
     "目标架构",
     "下单链路",
+    "订单生命周期",
   ]);
   await tabs.getByRole("button", { name: "迁移路线" }).click();
   await expect(page).toHaveURL(/#migration$/);

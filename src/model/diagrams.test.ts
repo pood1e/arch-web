@@ -68,29 +68,68 @@ describe("data directory index", () => {
   const files = (paths: string[]) => Object.fromEntries(paths.map((path) => [path, "{}"]));
   const migration = (baseline: string, target: string) => JSON.stringify({ baseline, target });
 
-  it("puts each migration between its endpoints and other diagrams after them", () => {
-    const { diagrams, migrations, pages } = indexData(
-      files(["../d/flow/a.json", "../d/old/a.json", "../d/new/a.json", "../d/new/sub/b.json"]),
-      { "../d/route.json": migration("old", "new") },
+  it("puts each migration between its endpoints and other pages after them", () => {
+    const { diagrams, explainers, migrations, pages } = indexData(
+      {
+        fragments: files([
+          "../d/flow/a.json",
+          "../d/old/a.json",
+          "../d/new/a.json",
+          "../d/new/sub/b.json",
+          "../d/how/explainer.json",
+        ]),
+        figures: files(["../d/how/step.mmd"]),
+        migrations: { "../d/route.json": migration("old", "new") },
+      },
       "../d/",
     );
-    expect(pages.map((page) => page.id)).toEqual(["old", "route", "new", "flow"]);
+    expect(pages.map((page) => page.id)).toEqual(["old", "route", "new", "flow", "how"]);
     expect(diagrams.map((diagram) => diagram.id)).toEqual(["old", "new", "flow"]);
     expect(Object.keys(diagrams[1].fragments)).toEqual(["../d/new/a.json", "../d/new/sub/b.json"]);
+    expect(explainers).toEqual([
+      { id: "how", manifests: { "../d/how/explainer.json": "{}" }, sources: { "step.mmd": "{}" } },
+    ]);
     expect(migrations[0]).toMatchObject({ id: "route", baseline: "old", target: "new" });
   });
 
-  it("orders diagrams by directory without migrations", () => {
-    const { pages } = indexData(files(["/d/b/a.json", "/d/a/a.json"]), {}, "/d/");
+  it("orders pages by directory without migrations", () => {
+    const { pages } = indexData(
+      {
+        fragments: files(["/d/b/a.json", "/d/a/a.json"]),
+        figures: files(["/d/c/x.mmd"]),
+        migrations: {},
+      },
+      "/d/",
+    );
     expect(pages).toEqual([
       { id: "a", kind: "diagram" },
       { id: "b", kind: "diagram" },
+      { id: "c", kind: "explainer" },
     ]);
   });
 
-  it("rejects a migration named after a diagram directory", () => {
+  it("keeps explainers out of migration endpoints", () => {
+    const { pages } = indexData(
+      {
+        fragments: files(["/d/new/a.json", "/d/how/explainer.json"]),
+        figures: files(["/d/how/x.mmd"]),
+        migrations: { "/d/route.json": migration("how", "new") },
+      },
+      "/d/",
+    );
+    expect(pages.map((page) => page.id)).toEqual(["route", "new", "how"]);
+  });
+
+  it("rejects a migration named after a page directory", () => {
     expect(() =>
-      indexData(files(["/d/plan/a.json"]), { "/d/plan.json": migration("", "") }, "/d/"),
+      indexData(
+        {
+          fragments: {},
+          figures: files(["/d/plan/x.mmd"]),
+          migrations: { "/d/plan.json": migration("", "") },
+        },
+        "/d/",
+      ),
     ).toThrow("重名");
   });
 });

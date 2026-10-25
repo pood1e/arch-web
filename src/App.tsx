@@ -1,46 +1,45 @@
 import { useState } from "react";
 import { ArchitectureView, Status, useViewSettings } from "@/components/ArchitectureView";
+import { ExplainerView } from "@/components/ExplainerView";
 import { MigrationView } from "@/components/MigrationView";
 import { DiagramTabs, ScopeSelect } from "@/components/Toolbar";
 import type { Focus } from "@/graph/highlight";
 import { useHashRoute } from "@/hooks/useHashRoute";
 import { parseArchitecture } from "@/model/architecture";
-import { DIAGRAMS, MIGRATIONS, PAGES } from "@/model/diagrams";
-import { type MigrationModel, parseMigration, stepOf } from "@/model/migration";
+import { DIAGRAMS, EXPLAINERS, MIGRATIONS, PAGES, type Page } from "@/model/diagrams";
+import { parseExplainer } from "@/model/explainer";
+import { parseMigration, stepOf } from "@/model/migration";
 import { scopeOf, viewOf } from "@/model/views";
 
-const LOADED = DIAGRAMS.map(({ id, fragments }) => {
+/** 解析失败的页面保留错误信息，打开时显示。 */
+function load<T>(id: string, parse: () => T, fallback: string) {
   try {
-    return { id, model: parseArchitecture(fragments), error: "" };
+    return { id, model: parse(), error: "" };
   } catch (error) {
-    return { id, model: null, error: error instanceof Error ? error.message : "架构数据解析失败" };
+    return { id, model: null, error: error instanceof Error ? error.message : fallback };
   }
-});
-const diagramOf = (id: string) => LOADED.find((item) => item.id === id)?.model ?? undefined;
-const ROADMAPS: { id: string; model: MigrationModel | null; error: string }[] = MIGRATIONS.map(
-  ({ id, source }) => {
-    try {
-      return { id, model: parseMigration(source, diagramOf), error: "" };
-    } catch (error) {
-      return {
-        id,
-        model: null,
-        error: error instanceof Error ? error.message : "迁移路线解析失败",
-      };
-    }
-  },
+}
+
+const LOADED = DIAGRAMS.map(({ id, fragments }) =>
+  load(id, () => parseArchitecture(fragments), "架构数据解析失败"),
 );
-/** 标签顺序见 PAGES：迁移路线连同起点与终点在前，其余架构图在后。 */
-const TABS = PAGES.map(({ id, kind }) => {
-  const title =
-    kind === "migration"
-      ? ROADMAPS.find((item) => item.id === id)?.model?.title
-      : diagramOf(id)?.title;
-  return { id, label: title ?? id };
-});
+const diagramOf = (id: string) => LOADED.find((item) => item.id === id)?.model ?? undefined;
+const ROADMAPS = MIGRATIONS.map(({ id, source }) =>
+  load(id, () => parseMigration(source, diagramOf), "迁移路线解析失败"),
+);
+const EXPLAINED = EXPLAINERS.map(({ id, manifests, sources }) =>
+  load(id, () => parseExplainer(manifests, sources), "示意图数据解析失败"),
+);
+const TITLES: Record<Page["kind"], (id: string) => string | undefined> = {
+  diagram: (id) => diagramOf(id)?.title,
+  explainer: (id) => EXPLAINED.find((item) => item.id === id)?.model?.title,
+  migration: (id) => ROADMAPS.find((item) => item.id === id)?.model?.title,
+};
+/** 标签顺序见 PAGES：迁移路线连同起点与终点在前，其余页面在后。 */
+const TABS = PAGES.map(({ id, kind }) => ({ id, label: TITLES[kind](id) || id }));
 const PAGE_IDS = TABS.map((tab) => tab.id);
 
-/** 按 URL 选择页面、领域或迁移阶段；跨页定位时把待选中的节点带到目标视图。 */
+/** 按 URL 选择页面及其中的领域、迁移阶段或示意图；跨页定位时把待选中的节点带到目标视图。 */
 export function App() {
   const [route, navigate] = useHashRoute(PAGE_IDS);
   const [pending, setPending] = useState<{ key: string; focus: Focus }>();
@@ -75,8 +74,22 @@ export function App() {
     );
   }
 
+  const explained = EXPLAINED.find((item) => item.id === route.diagram);
+  if (explained) {
+    if (!explained.model) return <Status message={explained.error} />;
+    return (
+      <ExplainerView
+        key={explained.id}
+        explainer={explained.model}
+        nav={tabs}
+        figure={route.scope}
+        figureHref={(id) => `#${explained.id}/${id}`}
+      />
+    );
+  }
+
   const diagram = LOADED.find((item) => item.id === route.diagram) ?? LOADED[0];
-  if (!diagram) return <Status message="数据目录中没有架构图" />;
+  if (!diagram) return <Status message="数据目录中没有页面" />;
   if (!diagram.model) return <Status message={diagram.error} />;
   const view = viewOf(diagram.model, route.scope);
   const key = `${diagram.id}/${view.scope}`;
