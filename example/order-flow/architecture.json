@@ -1,0 +1,156 @@
+{
+  "title": "下单链路",
+  "baseline": "示例商城 · 订单服务进程内的调用顺序",
+  "repositories": [
+    {
+      "id": "shop-web",
+      "url": "https://gitlab.example.com/shop/web",
+      "branch": "main",
+      "summary": "商城前端"
+    },
+    {
+      "id": "shop-order",
+      "url": "https://gitlab.example.com/shop/order",
+      "branch": "main",
+      "summary": "订单服务"
+    },
+    {
+      "id": "shop-catalog",
+      "url": "https://gitlab.example.com/shop/catalog",
+      "branch": "main",
+      "summary": "商品服务"
+    },
+    {
+      "id": "payment-sdk",
+      "url": "https://github.com/example/payment-sdk",
+      "branch": "main",
+      "summary": "支付平台官方 SDK"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "customer",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "顾客",
+      "subtitle": "浏览器 · App",
+      "icon": "user",
+      "description": "提交订单并完成支付。"
+    },
+    {
+      "id": "web",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "商城前端",
+      "subtitle": "Vue",
+      "icon": "vue",
+      "repository": "shop-web",
+      "description": "收集购物车与收货信息，调用订单接口。"
+    },
+    {
+      "id": "order-process",
+      "kind": "NODE_KIND_GROUP",
+      "title": "订单服务进程",
+      "subtitle": "Spring Boot",
+      "icon": "group",
+      "description": "一次下单在同一进程内依次完成校验、扣库存、落库与支付。"
+    },
+    {
+      "id": "order-api",
+      "parent": "order-process",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "下单接口",
+      "subtitle": "REST",
+      "icon": "api",
+      "repository": "shop-order",
+      "source": "src/api",
+      "description": "校验请求并编排后续步骤。"
+    },
+    {
+      "id": "payment-client",
+      "parent": "order-process",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "支付客户端",
+      "subtitle": "官方 SDK",
+      "icon": "send",
+      "repository": "payment-sdk",
+      "source": "client",
+      "description": "以官方 SDK 发起支付并处理回调签名。"
+    },
+    {
+      "id": "inventory",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "库存扣减",
+      "subtitle": "商品服务",
+      "icon": "inventory",
+      "repository": "shop-catalog",
+      "description": "按订单行扣减库存，失败时整单拒绝。"
+    },
+    {
+      "id": "order-db",
+      "kind": "NODE_KIND_COMPONENT",
+      "title": "订单库",
+      "subtitle": "PostgreSQL",
+      "icon": "postgresql",
+      "repository": "shop-order",
+      "description": "保存订单与支付状态。"
+    },
+    {
+      "id": "payment",
+      "kind": "NODE_KIND_EXTERNAL",
+      "title": "支付平台",
+      "subtitle": "第三方",
+      "icon": "plug",
+      "description": "完成扣款并回调结果。"
+    }
+  ],
+  "edges": [
+    {
+      "source": "customer",
+      "target": "web",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "HTTPS",
+      "description": "提交订单。"
+    },
+    {
+      "source": "web",
+      "target": "order-api",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "REST",
+      "description": "创建订单。"
+    },
+    {
+      "source": "order-api",
+      "target": "inventory",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "REST",
+      "description": "先扣库存，避免超卖。"
+    },
+    {
+      "source": "order-api",
+      "target": "order-db",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "SQL",
+      "description": "写入待支付订单。"
+    },
+    {
+      "source": "order-api",
+      "target": "payment-client",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "进程内调用",
+      "description": "发起支付。"
+    },
+    {
+      "source": "payment-client",
+      "target": "payment",
+      "kind": "EDGE_KIND_REQUEST",
+      "label": "HTTPS",
+      "description": "调用支付平台。"
+    }
+  ],
+  "notes": [
+    {
+      "title": "先扣库存再支付",
+      "description": "库存扣减失败时不创建支付，避免已扣款却无货。",
+      "nodes": ["order-api", "inventory", "payment-client"]
+    }
+  ]
+}

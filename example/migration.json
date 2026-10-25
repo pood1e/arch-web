@@ -1,5 +1,7 @@
 {
   "title": "迁移路线",
+  "baseline": "current",
+  "target": "target",
   "phases": [
     {
       "title": "入口与数据底座",

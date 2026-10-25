@@ -4,7 +4,12 @@ test("navigates migration phases and their components in both architectures", as
   await page.goto("/#current");
   await expect(page.locator(".react-flow__node-leaf")).toHaveCount(13);
   const tabs = page.getByRole("navigation", { name: "架构图" });
-  await expect(tabs.getByRole("button")).toHaveText(["现状架构", "迁移路线", "目标架构"]);
+  await expect(tabs.getByRole("button")).toHaveText([
+    "现状架构",
+    "迁移路线",
+    "目标架构",
+    "下单链路",
+  ]);
   await tabs.getByRole("button", { name: "迁移路线" }).click();
   await expect(page).toHaveURL(/#migration$/);
   await expect(page).toHaveTitle("迁移路线");

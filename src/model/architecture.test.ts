@@ -1,4 +1,6 @@
+import { create } from "@bufbuild/protobuf";
 import { describe, expect, it } from "vitest";
+import { RepositorySchema } from "@/gen/arch/v1/architecture_pb";
 import {
   ancestors,
   Change,
@@ -51,6 +53,10 @@ describe("parseArchitecture", () => {
     );
     const planned = model.repositories.get("planned");
     expect(planned && sourceUrl(planned, "server")).toBe("");
+    const hub = { ...repositories[0], url: "https://github.com/org/app" };
+    expect(sourceUrl(create(RepositorySchema, hub), "server")).toBe(
+      "https://github.com/org/app/tree/dev/server",
+    );
   });
 
   it("parses changes, event edges and notes", () => {
