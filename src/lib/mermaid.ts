@@ -33,10 +33,14 @@ export async function renderMermaid(codes: string[], theme: "light" | "dark"): P
   return results;
 }
 
+/** 图表数据系列依次使用的颜色变量，两种主题下都与卡片底色有足够对比度。 */
+const SERIES = ["primary", "info", "success", "violet", "warning", "ring", "muted-foreground"];
+
 /** 由根元素的 CSS 变量映射 Mermaid base 主题；该主题只识别十六进制颜色。 */
 function palette(theme: "light" | "dark"): MermaidConfig["themeVariables"] {
   const style = getComputedStyle(document.documentElement);
   const color = (name: string) => style.getPropertyValue(`--${name}`).trim();
+  const series = SERIES.map(color);
   return {
     darkMode: theme === "dark",
     fontFamily: style.fontFamily,
@@ -61,6 +65,31 @@ function palette(theme: "light" | "dark"): MermaidConfig["themeVariables"] {
     // 甘特图关键任务与普通任务共用文字颜色，填充取主色与卡片色的中间色以保证两种主题下的对比度。
     critBkgColor: mix(color("primary"), color("card"), 0.45),
     critBorderColor: color("primary"),
+    ...Object.fromEntries(series.map((value, index) => [`pie${index + 1}`, value])),
+    pieOpacity: "1",
+    pieTitleTextSize: "15px",
+    pieSectionTextSize: "13px",
+    pieLegendTextSize: "13px",
+    pieStrokeColor: color("card"),
+    pieOuterStrokeColor: color("border"),
+    pieSectionTextColor: color("card"),
+    pieLegendTextColor: color("foreground"),
+    pieTitleTextColor: color("foreground"),
+    xyChart: {
+      backgroundColor: color("card"),
+      titleColor: color("foreground"),
+      legendTextColor: color("foreground"),
+      dataLabelColor: color("foreground"),
+      xAxisTitleColor: color("muted-foreground"),
+      xAxisLabelColor: color("muted-foreground"),
+      xAxisTickColor: color("border"),
+      xAxisLineColor: color("border"),
+      yAxisTitleColor: color("muted-foreground"),
+      yAxisLabelColor: color("muted-foreground"),
+      yAxisTickColor: color("border"),
+      yAxisLineColor: color("border"),
+      plotColorPalette: series.join(","),
+    },
   };
 }
 

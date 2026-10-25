@@ -11,6 +11,11 @@
       "title": "订单状态",
       "description": "超时未支付的订单自动取消并释放库存；发货后不再允许取消。",
       "source": "states.mmd"
+    },
+    {
+      "title": "近七日订单量",
+      "description": "每日下单数与支付成功数，周末下单量约为工作日的两倍，支付成功率约为 91%–94%。",
+      "source": "volume.mmd"
     }
   ]
 }
