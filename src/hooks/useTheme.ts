@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
 export type ThemePreference = "light" | "dark" | "system";
+export type Theme = ReturnType<typeof useTheme>;
 
 const STORAGE_KEY = "arch-web-theme";
 const DARK_QUERY = "(prefers-color-scheme: dark)";

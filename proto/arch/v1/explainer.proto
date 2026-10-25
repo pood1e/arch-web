@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package arch.v1;
+
+// Explainer 是一组按顺序排列的 Mermaid 示意图，说明流程、时序或机制。
+message Explainer {
+  string title = 1;
+  // 页面导语。
+  string description = 2;
+  repeated Figure figures = 3;
+}
+
+// Figure 是一张 Mermaid 示意图及其说明。
+message Figure {
+  string title = 1;
+  string description = 2;
+  // 同目录下的 Mermaid 源文件名，如 lifecycle.mmd；去掉扩展名后作为 URL 定位用的 ID。
+  string source = 3;
+}

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 
-/** URL hash 形如 `#<架构图>` 或 `#<架构图>/<领域>`。 */
+/** URL hash 形如 `#<页面>` 或 `#<页面>/<领域、阶段或示意图>`。 */
 export interface Route {
   diagram: string;
   scope: string;
 }
 
-/** 以 URL hash 记录当前架构图与领域，支持直达链接与浏览器前进后退。 */
+/** 以 URL hash 记录当前页面与页内位置，支持直达链接与浏览器前进后退。 */
 export function useHashRoute(diagrams: readonly string[]): [Route, (route: Route) => void] {
   const [route, setRoute] = useState(() => parse(diagrams));
   useEffect(() => {
