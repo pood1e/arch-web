@@ -40,13 +40,26 @@ const phases = [
   },
 ];
 
+const diagrams = new Map([
+  ["before", baseline],
+  ["after", target],
+]);
+
 function parse(patch: Record<string, unknown> = {}) {
-  return parseMigration(JSON.stringify({ title: "路线", phases, ...patch }), baseline, target);
+  const json = JSON.stringify({
+    title: "路线",
+    phases,
+    baseline: "before",
+    target: "after",
+    ...patch,
+  });
+  return parseMigration(json, (id) => diagrams.get(id));
 }
 
 describe("parseMigration", () => {
   it("indexes delivery and retirement across both architectures", () => {
     const model = parse();
+    expect([model.baselineId, model.targetId]).toEqual(["before", "after"]);
     expect([...model.delivered]).toEqual([
       ["shared", 0],
       ["new", 0],
@@ -63,7 +76,7 @@ describe("parseMigration", () => {
     [
       "unknown target",
       [{ ...phases[0], nodes: ["missing", "shared", "new"] }, phases[1]],
-      "目标架构未知节点 missing",
+      "终点架构未知节点 missing",
     ],
     [
       "unchanged delivery",
@@ -83,12 +96,12 @@ describe("parseMigration", () => {
     [
       "unknown baseline",
       [{ ...phases[0], retires: ["missing"] }, phases[1]],
-      "下线的 missing 不是现状架构叶子节点",
+      "下线的 missing 不是起点架构叶子节点",
     ],
     [
       "surviving baseline",
       [{ ...phases[0], retires: ["preserved", "legacy"] }, phases[1]],
-      "下线的 preserved 仍在目标架构中",
+      "下线的 preserved 仍在终点架构中",
     ],
     [
       "duplicate retirement",
@@ -98,7 +111,7 @@ describe("parseMigration", () => {
     [
       "missing retirement",
       [{ ...phases[0], retires: [] }, phases[1]],
-      "现状节点 legacy 未排入下线阶段",
+      "起点节点 legacy 未排入下线阶段",
     ],
     [
       "missing criteria",
@@ -111,5 +124,10 @@ describe("parseMigration", () => {
 
   it("rejects unknown fields", () => {
     expect(() => parse({ owner: "unknown" })).toThrow();
+  });
+
+  it("rejects endpoints that are not loaded diagrams", () => {
+    expect(() => parse({ target: "missing" })).toThrow("终点「missing」");
+    expect(() => parse({ baseline: "" })).toThrow("起点「」");
   });
 });

@@ -66,10 +66,11 @@ export function noteLeaves(model: ArchitectureModel, note: Note): string[] {
   return [...new Set(note.nodes.flatMap((id) => leavesOf(model, id)))];
 }
 
-/** 仓库或仓库内路径的 Web 地址；规划中的仓库没有地址。 */
+/** 仓库或仓库内路径的 Web 地址，按 GitHub 或 GitLab 的路径格式生成；规划中的仓库没有地址。 */
 export function sourceUrl(repository: Repository, path: string): string {
   if (!repository.url || !path) return repository.url;
-  return `${repository.url}/-/tree/${repository.branch}/${path}`;
+  const tree = new URL(repository.url).hostname === "github.com" ? "tree" : "-/tree";
+  return `${repository.url}/${tree}/${repository.branch}/${path}`;
 }
 
 /**

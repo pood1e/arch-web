@@ -88,6 +88,19 @@ test("keeps collapsed neighbours inside their deployment container", async ({ pa
       .toBe(true);
 });
 
+test("renders a standalone diagram outside the migration", async ({ page }) => {
+  await open(page, "order-flow", 7);
+  await expect(page).toHaveTitle("下单链路");
+  await expect(page.getByRole("combobox", { name: "领域" })).toHaveCount(0);
+  await select(page, "payment-client");
+  await expect(details(page).getByRole("heading", { name: "支付客户端" })).toBeVisible();
+  await expect(details(page).getByRole("link", { name: "client", exact: true })).toHaveAttribute(
+    "href",
+    "https://github.com/example/payment-sdk/tree/main/client",
+  );
+  await expect(details(page).getByText("迁移阶段")).toHaveCount(0);
+});
+
 test("shows component details, source links and connections", async ({ page }) => {
   await open(page, "current", 13);
   await select(page, "monolith");
