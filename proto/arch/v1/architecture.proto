@@ -30,6 +30,8 @@ message Domain {
   string description = 5;
   // 领域总览中的分组。
   DomainCategory category = 6;
+  // 以范围框展示具体组件；相邻视图保留实际关联的组件。
+  bool expanded = 7;
 }
 
 enum DomainCategory {

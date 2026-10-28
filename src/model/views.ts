@@ -14,8 +14,8 @@ import {
 import { groupOverview } from "@/model/overview";
 
 /**
- * 架构图的一个视图。总览把每个领域折叠为方框并按分类分组，连线按领域对合并；领域视图展开该领域及其所在
- * 容器，相邻领域折叠为方框并保留其组件的公共容器，未归属领域的外部系统保持原位，同类连线合并。
+ * 架构图的一个视图。总览按分类组织领域，默认折叠为方框，标记展开的领域以范围框展示具体组件；
+ * 领域视图保留部署容器、实际关联的范围组件与折叠的相邻领域，同类跨领域连线合并。
  * 未划分领域的架构图只有一个完整视图。
  */
 export interface DiagramView {
@@ -74,13 +74,16 @@ interface Bundle {
 }
 
 function projectView(source: ArchitectureModel, scope: string): DiagramView {
-  const expanded = (leaf: string) => !source.domains.size || source.domainOf.get(leaf) === scope;
+  const selected = (leaf: string) => !source.domains.size || source.domainOf.get(leaf) === scope;
+  const expanded = (leaf: string) =>
+    selected(leaf) || !!source.domains.get(source.domainOf.get(leaf) ?? "")?.expanded;
   const endpoint = (leaf: string) => (expanded(leaf) ? leaf : (source.domainOf.get(leaf) ?? leaf));
 
   const overview = !scope && source.domains.size > 0;
+  const frameOf = (leaf: string) => (overview ? source.domainOf.get(leaf) : undefined);
   const bundles = new Map<string, Bundle>();
   for (const [id, edge] of source.edges) {
-    if (scope && !expanded(edge.source) && !expanded(edge.target)) continue;
+    if (scope && !selected(edge.source) && !selected(edge.target)) continue;
     const [from, to] = [endpoint(edge.source), endpoint(edge.target)];
     if (from === to) continue;
     const pair = `${from}->${to}`;
@@ -100,17 +103,17 @@ function projectView(source: ArchitectureModel, scope: string): DiagramView {
   const leaves = [...source.nodes.keys()].filter((id) => !source.children.has(id));
   const visible = new Set(
     scope
-      ? [...leaves.filter(expanded), ...[...bundles.values()].flatMap((b) => [b.source, b.target])]
+      ? [...leaves.filter(selected), ...[...bundles.values()].flatMap((b) => [b.source, b.target])]
       : leaves.map(endpoint),
   );
   const boxes = new Map(
-    [...visible]
+    [...new Set([...visible].map((id) => frameOf(id) ?? id))]
       .filter((id) => source.domains.has(id))
       .map((id) => [id, domainBox(source, id, overview)]),
   );
   const framed = new Set(
     [...visible].flatMap((id) => {
-      const parent = (boxes.get(id) ?? source.nodes.get(id))?.parent;
+      const parent = frameOf(id) ?? (boxes.get(id) ?? source.nodes.get(id))?.parent;
       return parent ? [...ancestors(source, parent).map((node) => node.id), parent] : [];
     }),
   );
@@ -121,7 +124,11 @@ function projectView(source: ArchitectureModel, scope: string): DiagramView {
       continue;
     }
     const id = endpoint(node.id);
-    if (visible.has(id) && !projected.has(id)) projected.set(id, boxes.get(id) ?? node);
+    if (visible.has(id) && !projected.has(id)) {
+      const frame = boxes.get(frameOf(id) ?? "");
+      if (frame) projected.set(frame.id, frame);
+      projected.set(id, frame ? { ...node, parent: frame.id, tier: 0 } : (boxes.get(id) ?? node));
+    }
   }
   const nodes = overview ? groupOverview(source, projected) : projected;
 
@@ -157,7 +164,7 @@ function domainBox(source: ArchitectureModel, id: string, overview: boolean): Ar
   );
   return create(NodeSchema, {
     id,
-    kind: NodeKind.COMPONENT,
+    kind: overview && domain?.expanded ? NodeKind.GROUP : NodeKind.COMPONENT,
     parent: overview ? "" : parent?.id,
     title: domain?.title,
     subtitle: domain?.subtitle,
